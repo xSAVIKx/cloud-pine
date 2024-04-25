@@ -26,7 +26,7 @@ expectAssignable<CloudPineOptions>({
     },
     skipInit: true,
     sync: false,
-  },
+  }, logEntryDataTransformer: logEntry => logEntry
 });
 expectType<Transform>(CloudPine(options));
 

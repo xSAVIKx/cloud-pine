@@ -1113,7 +1113,7 @@ tap.test('CloudLogging#async', root => {
     )
 
     nested.test(
-      'Calles made to #resource should return the fresh object of the parent resource',
+      'Calls made to #resource should return the fresh object of the parent resource',
       async t => {
         const logName = 'test'
         const projectId = 'test-project'
@@ -1247,7 +1247,7 @@ tap.test('CloudLogging#async', root => {
       }
     }
 
-    nested.plan(9)
+    nested.plan(10)
 
     nested.test('Should parse a line correctly', async t => {
       let expectedEntry
@@ -1386,6 +1386,88 @@ tap.test('CloudLogging#async', root => {
       t.plan(3)
 
       const instance = new CloudLogging(logName, defaultOptions)
+
+      await instance.init()
+
+      instance.parseLine(JSON.stringify(expectedLogEntry))
+    })
+
+    nested.test('Should allow overriding log entry data with a configurable option', async t => {
+      let expectedEntry
+      const expectedLogEntry = {
+        level: 50,
+        customDataValue: 1,
+        some: 'log',
+        being: 'printed',
+        message: 'being printed',
+        meta: {
+          trace: 'testTrace-123',
+          customMetadataValue: 2
+        }
+      }
+      class LogMock extends BaseLogMock {
+        entry (meta, log) {
+          const expectedMeta = Object.assign(
+            expectedLogEntry.meta,
+            {
+              severity: CloudLogging.SEVERITY_MAP[50],
+              labels: {
+                logger: 'pino',
+                agent: 'cloud_pine'
+              }
+            },
+            { resource: Object.assign({ type: 'global' }, detectedResource) }
+          )
+
+          const { meta: _meta, ...expectedLog } = expectedLogEntry
+
+          t.same(meta, expectedMeta)
+          t.same(log, expectedLog)
+
+          return (
+            (expectedEntry = Object.assign({}, meta, {
+              jsonPayload: expectedLogEntry,
+              logName: this.name
+            })), expectedEntry
+          )
+        }
+
+        write (entry) {
+          t.same(entry, expectedEntry)
+        }
+      }
+
+      class LoggingMock extends BaseLoggingMock {
+        setProjectId () {
+          return Promise.resolve()
+        }
+
+        setDetectedResource () {
+          this.detectedResource = detectedResource
+          return Promise.resolve()
+        }
+
+        log (name) {
+          return new LogMock(name)
+        }
+      }
+
+      const { CloudLogging } = t.mock('../../lib/cloud-logging', {
+        '@google-cloud/logging': { Logging: LoggingMock }
+      })
+
+      t.plan(3)
+
+      const withCustomLogEntryTransformer = {
+        ...defaultOptions,
+        logEntryDataTransformer: ({ metadata, data }) => {
+          data.customDataValue = 1
+          metadata.customMetadataValue = 2
+          return { metadata, data }
+        }
+      }
+
+      const instance = new CloudLogging(logName, withCustomLogEntryTransformer)
 
       await instance.init()
 

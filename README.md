@@ -90,7 +90,8 @@ const cloudPine = {
         skipInit: false, // Indicates wheter to skip the automatic inferr of `projectId` and `MonitoredResource` metadata. Default to `false`.
 
         sync: false, // Indicates wheter to use a Log or LogSync instance. Default to false.
-    }
+    },
+    logEntryDataTransformer: ({ metadata, data }) => {metadata, data} // An injection point that allows transforming log entry metadata and data object before they are converted to a log entry.
 }
 ```
 
@@ -154,7 +155,9 @@ type CloudPineOptions = {
     skipInit?: boolean;
     sync?: boolean;
     logOptions?: ConstructorParameters<typeof Log> | ConstructorParameters<typeof LogSync>;
-  };
+  }
+  logEntryDataTransformer?: LogEntryDataTransformer;
+};
 ```
 
 ### Sync or Async

@@ -1,6 +1,6 @@
 {
   "name": "cloud-pine",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Pino Transport abstraction for Google Cloud Logging.",
   "main": "index.js",
   "bin": {
@@ -55,8 +55,7 @@
   "dependencies": {
     "@google-cloud/logging": "^11.0.0",
     "minimist": "^1.2.8",
-    "split2": "^4.2.0",
-    "pino-abstract-transport": "^1.2.0"
+    "split2": "^4.2.0"
   },
   "tsd": {
     "directory": "test"
